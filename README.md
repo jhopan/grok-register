@@ -2,7 +2,7 @@
 
 [![Grok Register — GUI, CLI and WebUI registration automation toolkit](assets/banner.png)](https://github.com/AaronL725/grok-register)
 
-Grok Register 是一个面向自动化流程研究、测试环境验证和个人学习的 Python 工具。项目提供 GUI / CLI / WebUI、四种临时邮箱、可选 1–8 线程并发与账号级代理池，并集成 Chromium 页面自动化、账号安全落盘、pending 恢复、grok2api token 入池和可选 CPA xAI OIDC 凭证导出。
+Grok Register 是一个面向自动化流程研究、测试环境验证和个人学习的 Python 工具。项目提供 GUI / CLI / WebUI、集成 TempMail By JhopanStore 临时邮箱、可选 1–8 线程并发与账号级代理池，并集成 Chromium 页面自动化、账号安全落盘、pending 恢复、grok2api token 入池和可选 CPA xAI OIDC 凭证导出。
 
 <p>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"></a>
@@ -55,8 +55,8 @@ Grok Register 使用真实 Chromium / Chrome 完成注册流程，并把 GUI、C
 
 主要功能：
 
-- 自动打开注册页、提交邮箱、轮询验证码、填写资料并获取 SSO cookie。
-- 支持 **DuckMail / YYDS / Cloudflare 临时邮箱 / Cloud Mail** 四种邮箱来源。
+- 自动打开注册页、提交邮箱、等待验证码、填写资料并获取 SSO cookie。
+- 使用 **TempMail By JhopanStore** 自建临时邮箱服务（支持阻塞等待，无需轮询）。
 - 支持 **GUI / CLI / WebUI** 三种操作入口。
 - 支持可选 **1–8 线程并发注册**；默认关闭。
 - 支持 `direct / single / pool` 代理模式、健康检查、冷却、订阅、固定/旋转节点和账号级稳定 Proxy Lease。
@@ -133,9 +133,13 @@ copy config.example.json config.json
 
 ### 3. 先完成最小配置
 
+编辑 `config.json`：
+
 ```json
 {
-  "email_provider": "cloudflare",
+  "tempmail_api_base": "https://renunganbot.qzz.io",
+  "tempmail_api_key": "your-api-key-here",
+  "tempmail_domain": "renunganbot.qzz.io",
   "register_count": 1,
   "proxy_mode": "auto",
   "proxy": "",
@@ -143,7 +147,9 @@ copy config.example.json config.json
 }
 ```
 
-然后根据 `email_provider` 填写对应邮箱配置。完整字段见 [`config.example.json`](config.example.json)。
+获取 API Key：登录 TempMail 服务器，查看 `/etc/tempmail/tempmail.env` 中的 `EMAIL_API_KEY` 字段。
+
+完整配置字段见 [`config.example.json`](config.example.json)。
 
 ### 4. 启动
 

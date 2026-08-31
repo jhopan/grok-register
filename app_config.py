@@ -7,18 +7,9 @@ import urllib.parse
 CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.json")
 
 DEFAULT_CONFIG = {
-    "duckmail_api_key": "",
-    "cloudflare_api_base": "",
-    "cloudflare_api_key": "",
-    "cloudflare_auth_mode": "none",
-    "cloudflare_path_domains": "/api/domains",
-    "cloudflare_path_accounts": "/api/new_address",
-    "cloudflare_path_token": "/api/token",
-    "cloudflare_path_messages": "/api/mails",
-    "cloudmail_api_base": "",
-    "cloudmail_public_token": "",
-    "cloudmail_domains": "",
-    "cloudmail_path_messages": "/api/public/emailList",
+    "tempmail_api_base": "https://renunganbot.qzz.io",
+    "tempmail_api_key": "",
+    "tempmail_domain": "renunganbot.qzz.io",
     "proxy_mode": "auto",
     "proxy": "",
     "proxy_fallback": "none",
@@ -71,10 +62,6 @@ DEFAULT_CONFIG = {
     "cpa_oidc_request_timeout_sec": 15,
     "cpa_oidc_poll_timeout_sec": 15,
     "grok2api_allow_legacy_full_save": False,
-    "email_provider": "duckmail",
-    "yyds_api_key": "",
-    "yyds_jwt": "",
-    "defaultDomains": "",
 }
 
 
@@ -152,8 +139,6 @@ def validate_config_structure(raw):
     for key in string_keys:
         cfg[key] = _require_string(cfg, key, path=key in path_keys)
     enums = {
-        "email_provider": {"duckmail", "yyds", "cloudflare", "cloudmail"},
-        "cloudflare_auth_mode": {"query-key", "bearer", "x-api-key", "x-admin-auth", "none"},
         "grok2api_pool_name": {"ssoBasic", "ssoSuper"},
         "proxy_mode": {"auto", "direct", "single", "pool"},
         "proxy_fallback": {"none", "direct", "single"},
@@ -167,19 +152,8 @@ def validate_config_structure(raw):
             raise ConfigError(f"配置项 {key} 的值无效: {value!r}; 允许值: {sorted(allowed)}")
         cfg[key] = value
 
-    api_path_keys = {
-        "cloudflare_path_domains", "cloudflare_path_accounts",
-        "cloudflare_path_token", "cloudflare_path_messages",
-        "cloudmail_path_messages",
-    }
-    for key in api_path_keys:
-        value = cfg[key]
-        if value and not value.startswith("/"):
-            value = "/" + value
-        cfg[key] = value
-
     url_keys = {
-        "cloudflare_api_base", "cloudmail_api_base",
+        "tempmail_api_base",
         "grok2api_remote_base", "cpa_base_url",
         "proxy_pool_subscription_url",
     }
@@ -200,18 +174,14 @@ def validate_config_structure(raw):
 
 def validate_run_requirements(cfg):
     cfg = validate_config_structure(cfg)
-    provider = cfg["email_provider"]
-    if provider == "cloudflare" and not cfg["cloudflare_api_base"]:
-        raise ConfigError("Cloudflare 模式需要配置 cloudflare_api_base")
-    if provider == "cloudmail":
-        missing = [
-            key for key in ("cloudmail_api_base", "cloudmail_public_token", "cloudmail_domains")
-            if not cfg[key]
-        ]
-        if missing:
-            raise ConfigError("Cloud Mail 模式缺少必需配置: " + ", ".join(missing))
-    if provider == "yyds" and not (cfg["yyds_api_key"] or cfg["yyds_jwt"]):
-        raise ConfigError("YYDS 模式需要至少配置 yyds_api_key 或 yyds_jwt")
+    
+    # TempMail validation
+    if not cfg["tempmail_api_base"]:
+        raise ConfigError("TempMail API Base未配置")
+    if not cfg["tempmail_api_key"]:
+        raise ConfigError("TempMail API Key未配置")
+    if not cfg["tempmail_domain"]:
+        raise ConfigError("TempMail Domain未配置")
 
     if cfg["proxy_mode"] == "single" and not cfg["proxy"]:
         raise ConfigError("single 代理模式必须配置 proxy")
